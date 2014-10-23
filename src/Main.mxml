@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   width="900" height="600" backgroundColor="#FFFFFF" 
+					   showStatusBar="false"
+					   title="Training Videos" creationComplete="init()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import flash.net.navigateToURL;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			public var videos:ArrayCollection = new ArrayCollection(
+				[ {label:"Introduction", data:"http://www.w3schools.com/html/mov_bbb.mp4"}, 
+					{label:"Sample Video 1", data:"http://www.w3schools.com/html/mov_bbb.mp4"},
+					{label:"Sample Video 2", data:"http://www.w3schools.com/html/mov_bbb.mp4"},
+					{label:"Sample Video 3", data:"http://www.w3schools.com/html/mov_bbb.mp4"}
+				]
+			);
+			
+			[Bindable] public var videoSource:String = "";
+			[Bindable] public var selectedVideoTitle:String = "";
+			
+			public function init():void {
+				tab_2.enabled = false;
+			}
+			
+			private function gotoHomePage():void {
+				var url:String = "http://adaptedpro.net"; 
+				var urlReq:URLRequest = new URLRequest(url); 
+				navigateToURL(urlReq);
+			}
+			
+			private function closeHandler(event:Event):void {
+				playBtn.enabled = true;
+				tab_2.enabled = playBtn.enabled;
+				videoSource = videoSelector.selectedItem.data;
+				selectedVideoTitle = videoSelector.selectedLabel;
+			}
+			
+			private function playVideo(event:Event):void {
+				tabs.selectedIndex = 1;
+			}
+			
+			private function updateProgressBar():void {
+				var currentSpot:uint = (videoDisplay.playheadTime/videoDisplay.totalTime) * 100;
+				if (currentSpot<=100) {
+					videoProgress.setProgress(currentSpot,100);
+					videoProgress.label= "Playing: " + currentSpot + "%";
+				}				
+				playVidBtn.enabled = videoDisplay.playing ? false : true;
+			}
+			
+			private function convertToHHMMSS($seconds:Number):String {
+				var s:Number = $seconds % 60;
+				var m:Number = Math.floor(($seconds % 3600 ) / 60);
+				var h:Number = Math.floor($seconds / (60 * 60));
+				
+				var hourStr:String = (h == 0) ? "" : formatTime(h) + ":";
+				var minuteStr:String = formatTime(m) + ":";
+				var secondsStr:String = formatTime(s);
+				
+				return hourStr + minuteStr + secondsStr;
+			}			
+			
+			private function formatTime(num:uint):String {
+				if (num < 10) {
+					return ("0" + num);
+				}
+				return String(num);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:VBox id="container" width="100%" height="100%"  backgroundColor="#000000" >
+		
+		<mx:HBox id="masthead" width="100%" height="40" paddingBottom="10" paddingLeft="0" paddingRight="0" paddingTop="0">
+			<mx:Image id="masthead_logo" source="@Embed('title.png')" click="gotoHomePage()" buttonMode="true" />
+		</mx:HBox>
+		
+		<mx:TabNavigator id="tabs"  width="100%" height="100%" borderColor="#000000">	
+			
+			<mx:VBox id="tab_1" label="Select Video">
+				<mx:HBox id="maincontent" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" paddingLeft="10" paddingRight="10">
+					<mx:VBox horizontalAlign="center">
+						<mx:Image source="@Embed('placeholder_logo.png')"/>
+						<s:Spacer height="20" />
+						<mx:HBox>
+							<mx:ComboBox id="videoSelector" prompt="Select a training video" dataProvider="{videos}" close="closeHandler(event);"/>
+							<s:Button id="playBtn" label="Play Video" click="playVideo(event)" enabled="false" />
+						</mx:HBox>
+						<s:Spacer height="100%" />
+					</mx:VBox>
+				</mx:HBox>
+			</mx:VBox>
+			
+			<mx:VBox id="tab_2" label="Watch">
+				<mx:HBox id="videocontent" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" paddingLeft="10" paddingRight="10">
+					<mx:VBox horizontalAlign="center" height="100%" width="100%" paddingTop="10">
+						<s:Label id="videoTitle" text="{selectedVideoTitle}" fontFamily="Arial" fontWeight="bold" fontSize="14" />
+						<s:Spacer height="5" />
+						<mx:Box width="100%" height="100%">
+							<mx:VideoDisplay id="videoDisplay" bufferTime="10" playheadUpdate="updateProgressBar()" height="100%" width="100%" source="{videoSource}" autoPlay="false" />
+							<mx:ProgressBar id="videoProgress" direction="right" minimum="0" visible="true" maximum="100" mode="manual" fontSize="10" width="100%" label="" />
+							<s:Label id="currentTime" text="{ convertToHHMMSS(videoDisplay.playheadTime)}" fontFamily="Arial" fontSize="10" />
+							<s:Label id="totalTime" text="{convertToHHMMSS(videoDisplay.totalTime)}" fontFamily="Arial" fontSize="10" />
+						</mx:Box>
+						<s:Spacer height="10" />
+						<mx:HBox>
+							<mx:Button id="playVidBtn" label="Play" click="videoDisplay.play();updateProgressBar();"/>
+							<mx:Button id="pauseVidBtn" label="Pause" click="videoDisplay.pause();"/>
+							<mx:Button id="stopVidBtn" label="Stop" click="videoDisplay.stop();"/>
+						</mx:HBox>
+						<s:Spacer height="20" />
+					</mx:VBox>
+				</mx:HBox>
+			</mx:VBox>
+			
+		</mx:TabNavigator>		
+		
+		<mx:HBox id="footer" width="100%" height="30" backgroundColor="#000000"
+				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+			<s:Spacer width="100%" />
+			<s:Label text="For internal use only!" fontFamily="Arial" fontSize="12" fontWeight="normal" color="#FFFFFF" />			
+		</mx:HBox>
+		
+	</mx:VBox>
+	
+</s:WindowedApplication>
